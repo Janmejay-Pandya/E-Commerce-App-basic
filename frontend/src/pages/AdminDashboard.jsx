@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Plus, Package, ShoppingBag, X, Check, ImagePlus, Loader, Edit, Trash2, User, TrendingUp, Eye, Search } from "lucide-react";
+import { toast } from "react-toastify";
 import api from "../services/api";
 import { uploadToCloudinary } from "../utils/cloudinaryUpload";
 
@@ -64,7 +65,7 @@ export default function AdminDashboard() {
         e.preventDefault();
 
         if (!imageFile) {
-            alert("Please upload an image");
+            toast.warning("Please upload an image");
             return;
         }
 
@@ -80,7 +81,7 @@ export default function AdminDashboard() {
                 stock: Number(formData.stock) || 0
             });
 
-            alert("Product added successfully");
+            toast.success("Product added successfully");
 
             setFormData({ name: "", description: "", price: "", stock: "", category: "" });
             setImageFile(null);
@@ -89,7 +90,7 @@ export default function AdminDashboard() {
             fetchProducts();
         } catch (err) {
             console.error(err);
-            alert(err.response?.data?.message || "Failed to add product");
+            toast.error(err.response?.data?.message || "Failed to add product");
         } finally {
             setUploading(false);
         }

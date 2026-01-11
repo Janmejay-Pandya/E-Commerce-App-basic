@@ -1,6 +1,7 @@
 import { ShoppingCart, LogOut, Shield, ShoppingBag, User, Menu, X, Home } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import { toast } from "react-toastify";
 import useAuthStore from "../store/authStore";
 import useCartStore from "../store/cartStore";
 import { useNavigate } from "react-router-dom";
@@ -8,13 +9,15 @@ import { useNavigate } from "react-router-dom";
 export default function Navbar() {
     const navigate = useNavigate();
     const { user, logout } = useAuthStore();
-    const cart = useCartStore((state) => state.cart);
+    const { cart, clearCart } = useCartStore();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const cartItemsCount = cart.reduce((total, item) => total + item.qty, 0);
 
     const handleLogout = () => {
+        clearCart();
         logout();
+        toast.success("Logged out successfully!");
         navigate("/");
         setIsMobileMenuOpen(false);
     };

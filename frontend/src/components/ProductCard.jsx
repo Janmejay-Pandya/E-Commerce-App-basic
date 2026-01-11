@@ -1,16 +1,20 @@
 import { ShoppingBag, Heart, Star, Eye } from "lucide-react";
 import { useState } from "react";
+import { toast } from "react-toastify";
 import useCartStore from "../store/cartStore";
+import ProductModal from "./ProductModal";
 
 
 export default function ProductCard({ product }) {
     const addToCart = useCartStore((state) => state.addToCart);
     const [isLiked, setIsLiked] = useState(false);
     const [isAdding, setIsAdding] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const handleAddToCart = () => {
         setIsAdding(true);
         addToCart(product);
+        toast.success(`${product.name} added to cart!`);
 
         setTimeout(() => {
             setIsAdding(false);
@@ -22,10 +26,23 @@ export default function ProductCard({ product }) {
         setIsLiked(!isLiked);
     };
 
+    const handleCardClick = () => {
+        setIsModalOpen(true);
+    };
+
+    const handleQuickView = (e) => {
+        e.stopPropagation();
+        setIsModalOpen(true);
+    };
+
     // Generate random rating for demo (you can replace with actual product rating)
     const rating = product.rating || 4.5;
     return (
-        <div className="group bg-white rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden border border-slate-100 hover:border-slate-200">
+        <>
+            <div 
+                className="group bg-white rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden border border-slate-100 hover:border-slate-200 cursor-pointer"
+                onClick={handleCardClick}
+            >
             {/* Image Container */}
             <div className="relative overflow-hidden bg-slate-50">
                 {/* Wishlist Button */}
@@ -59,7 +76,10 @@ export default function ProductCard({ product }) {
 
                 {/* Quick View Overlay */}
                 <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/40 transition-all duration-500 flex items-center justify-center">
-                    <button className="opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 bg-white text-slate-900 px-6 py-2.5 rounded-full font-semibold flex items-center gap-2 shadow-xl hover:shadow-2xl hover:scale-105">
+                    <button 
+                        onClick={handleQuickView}
+                        className="opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 bg-white text-slate-900 px-6 py-2.5 rounded-full font-semibold flex items-center gap-2 shadow-xl hover:shadow-2xl hover:scale-105"
+                    >
                         <Eye size={18} />
                         Quick View
                     </button>
@@ -132,7 +152,10 @@ export default function ProductCard({ product }) {
 
                 {/* Add to Cart Button */}
                 <button
-                    onClick={handleAddToCart}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddToCart();
+                    }}
                     disabled={isAdding || (product.stock !== undefined && product.stock === 0)}
                     className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${isAdding
                         ? "bg-emerald-500 text-white"
@@ -156,5 +179,13 @@ export default function ProductCard({ product }) {
                 </button>
             </div>
         </div>
+        
+        {/* Product Modal */}
+        <ProductModal 
+            product={product} 
+            isOpen={isModalOpen} 
+            onClose={() => setIsModalOpen(false)} 
+        />
+        </>
     );
 }

@@ -1,12 +1,17 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { toast } from "react-toastify";
+import { jwtDecode } from "jwt-decode";
 import api from "../services/api";
 import useAuthStore from "../store/authStore";
+import useCartStore from "../store/cartStore";
 import { UserPlus, Mail, Lock, User, Shield, ShoppingBag, CheckCircle2 } from "lucide-react";
 
 export default function Register() {
     const navigate = useNavigate();
     const loginStore = useAuthStore((state) => state.login);
+    const { currentUserId } = useAuthStore();
+    const clearCart = useCartStore((state) => state.clearCart);
 
     const [form, setForm] = useState({
         name: "",
@@ -24,11 +29,21 @@ export default function Register() {
         e.preventDefault();
         try {
             await api.post("/auth/register", form);
+            toast.success("Registration successful!");
             // After registration, automatically login
             const loginRes = await api.post("/auth/login", {
                 email: form.email,
                 password: form.password
             });
+            
+            const decodedToken = jwtDecode(loginRes.data.token);
+            const newUserId = decodedToken.userId;
+            
+            // Clear cart if no user was logged in, or if a different user is logging in
+            if (!currentUserId || currentUserId !== newUserId) {
+                clearCart();
+            }
+            
             loginStore(loginRes.data.token);
 
             // Redirect based on role
@@ -38,7 +53,9 @@ export default function Register() {
                 navigate("/home");
             }
         } catch (err) {
-            setError(err.response?.data?.message || "Registration failed. Please try again.");
+            const errorMessage = err.response?.data?.message || "Registration failed. Please try again.";
+            setError(errorMessage);
+            toast.error(errorMessage);
         }
     };
 

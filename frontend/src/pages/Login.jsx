@@ -1,12 +1,17 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { toast } from "react-toastify";
+import { jwtDecode } from "jwt-decode";
 import api from "../services/api";
 import useAuthStore from "../store/authStore";
+import useCartStore from "../store/cartStore";
 import { LogIn, Mail, Lock, ShoppingBag, Truck, CreditCard, HeadphonesIcon } from "lucide-react";
 
 export default function Login() {
     const navigate = useNavigate();
     const loginStore = useAuthStore((state) => state.login);
+    const { currentUserId } = useAuthStore();
+    const clearCart = useCartStore((state) => state.clearCart);
 
     const [form, setForm] = useState({
         email: "",
@@ -22,7 +27,16 @@ export default function Login() {
         e.preventDefault();
         try {
             const res = await api.post("/auth/login", form);
+            const decodedToken = jwtDecode(res.data.token);
+            const newUserId = decodedToken.userId;
+            
+            // Clear cart if no user was logged in, or if a different user is logging in
+            if (!currentUserId || currentUserId !== newUserId) {
+                clearCart();
+            }
+            
             loginStore(res.data.token);
+            toast.success("Login successful!");
             // Redirect based on role
             const userRole = res.data.role;
             if (userRole === "admin") {
@@ -31,7 +45,9 @@ export default function Login() {
                 navigate("/home");
             }
         } catch (err) {
-            setError(err.response?.data?.message || "Invalid email or password");
+            const errorMessage = err.response?.data?.message || "Invalid email or password";
+            setError(errorMessage);
+            toast.error(errorMessage);
         }
     };
 

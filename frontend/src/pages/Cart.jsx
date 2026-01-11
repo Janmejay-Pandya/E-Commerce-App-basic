@@ -1,5 +1,6 @@
 import { Plus, Minus, Trash2, ShoppingBag, Package, CreditCard, ArrowRight, Tag, Truck } from "lucide-react";
 import { useState } from "react";
+import { toast } from "react-toastify";
 import useCartStore from "../store/cartStore";
 import api from "../services/api";
 
@@ -12,7 +13,7 @@ export default function Cart() {
 
     const checkout = async () => {
         if (cart.length === 0) {
-            alert("Your cart is empty!");
+            toast.warning("Your cart is empty!");
             return;
         }
         setIsProcessing(true);
@@ -25,9 +26,9 @@ export default function Cart() {
                 totalAmount: total
             });
             clearCart();
-            alert("Order placed successfully!");
+            toast.success("Order placed successfully!");
         } catch (err) {
-            alert(err.response?.data?.message || "Failed to place order. Please try again.");
+            toast.error(err.response?.data?.message || "Failed to place order. Please try again.");
             console.error(err);
         } finally {
             setIsProcessing(false);
